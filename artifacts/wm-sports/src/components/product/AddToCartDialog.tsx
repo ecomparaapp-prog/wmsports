@@ -208,12 +208,17 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                           <div>
                             <label className="text-xs text-muted-foreground block mb-1">Número</label>
                             <input
-                              type="text"
+                              type="tel"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={persNumber}
-                              onChange={e => { setPersNumber(e.target.value.replace(/\D/g, '')); setError(''); }}
+                              onChange={e => {
+                                const digits = e.target.value.replace(/\D/g, '').slice(0, 2);
+                                setPersNumber(digits);
+                                setError('');
+                              }}
                               className="w-full bg-card border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary text-center font-bold"
                               placeholder="10"
-                              maxLength={2}
                             />
                           </div>
                         </div>
