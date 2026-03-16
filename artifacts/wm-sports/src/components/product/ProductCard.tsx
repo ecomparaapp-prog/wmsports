@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import type { Product } from '@workspace/api-client-react';
 import { formatCurrency } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/drive';
 import { AddToCartDialog } from './AddToCartDialog';
 
 interface Props {
@@ -10,15 +11,16 @@ interface Props {
 
 export function ProductCard({ product }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const resolvedImage = resolveImageUrl(product.imageUrl);
 
   return (
     <>
       <div className="group bg-card border border-white/5 rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(34,197,94,0.1)] flex flex-col h-full">
         {/* Image Area */}
         <div className="relative aspect-square overflow-hidden bg-secondary/50">
-          {product.imageUrl ? (
+          {resolvedImage ? (
             <img 
-              src={product.imageUrl} 
+              src={resolvedImage} 
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"

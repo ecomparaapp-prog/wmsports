@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/Home";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
 // Initialize react-query client
@@ -19,7 +20,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      {/* Add more routes here like /product/:id if needed, but Home acts as catalog for now */}
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );
