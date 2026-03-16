@@ -16,6 +16,7 @@ export interface CreateProduct {
   price3?: number | null;
   price5?: number | null;
   allowPersonalization: boolean;
+  subcategory?: string | null;
   active: boolean;
   sortOrder: number;
 }

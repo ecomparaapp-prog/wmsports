@@ -22,6 +22,7 @@ export interface Product {
   /** Price per item when buying 5+ */
   price5?: number | null;
   allowPersonalization: boolean;
+  subcategory?: string | null;
   active: boolean;
   sortOrder: number;
   createdAt: string;
@@ -37,6 +38,7 @@ export interface CreateProduct {
   price3?: number | null;
   price5?: number | null;
   allowPersonalization: boolean;
+  subcategory?: string | null;
   active: boolean;
   sortOrder: number;
 }

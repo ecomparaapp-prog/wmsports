@@ -162,6 +162,9 @@ components:
           description: Price per item when buying 5+
         allowPersonalization:
           type: boolean
+        subcategory:
+          type: string
+          nullable: true
         active:
           type: boolean
         sortOrder:
@@ -204,6 +207,9 @@ components:
           nullable: true
         allowPersonalization:
           type: boolean
+        subcategory:
+          type: string
+          nullable: true
         active:
           type: boolean
         sortOrder:

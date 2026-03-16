@@ -17,6 +17,7 @@ const SIZES_AVAILABLE = ["PP", "P", "M", "G", "GG", "XG", "XGG", "2XL", "3XL", "
 interface ProductForm {
   name: string;
   category: string;
+  subcategory: string;
   description: string;
   imageUrl: string;
   driveUrl: string;
@@ -31,6 +32,7 @@ interface ProductForm {
 const emptyForm: ProductForm = {
   name: "",
   category: "CAMISAS",
+  subcategory: "",
   description: "",
   imageUrl: "",
   driveUrl: "",
@@ -92,6 +94,7 @@ export default function Admin() {
     setForm({
       name: product.name,
       category: product.category,
+      subcategory: product.subcategory || "",
       description: product.description || "",
       imageUrl: product.imageUrl || "",
       driveUrl: product.driveUrl || "",
@@ -120,6 +123,7 @@ export default function Admin() {
     const payload = {
       name: form.name,
       category: form.category,
+      subcategory: form.subcategory || null,
       description: form.description,
       imageUrl: form.imageUrl || null,
       driveUrl: form.driveUrl || null,
@@ -236,6 +240,14 @@ export default function Admin() {
                       className="w-full bg-secondary border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary">
                       {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-1.5">Time / Subcategoria</label>
+                    <input type="text" value={form.subcategory} onChange={e => setForm(f => ({...f, subcategory: e.target.value.toUpperCase()}))}
+                      className="w-full bg-secondary border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-muted-foreground focus:outline-none focus:border-primary uppercase"
+                      placeholder="ex: FLAMENGO, REAL MADRID, BRASIL..." />
+                    <p className="text-xs text-muted-foreground mt-1">Usado para filtrar por time na loja</p>
                   </div>
 
                   <div>

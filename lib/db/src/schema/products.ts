@@ -13,6 +13,7 @@ export const productsTable = pgTable("products", {
   price3: numeric("price_3", { precision: 10, scale: 2 }),
   price5: numeric("price_5", { precision: 10, scale: 2 }),
   allowPersonalization: boolean("allow_personalization").notNull().default(true),
+  subcategory: text("subcategory"),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
