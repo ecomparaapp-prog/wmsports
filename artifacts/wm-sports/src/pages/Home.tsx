@@ -3,22 +3,32 @@ import { useListProducts } from '@workspace/api-client-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { FALLBACK_PRODUCTS } from '@/lib/constants';
-import { ExternalLink, Zap, Medal, Star, Search, X, SlidersHorizontal, Truck, ShieldCheck, Clock } from 'lucide-react';
+import {
+  ExternalLink, Zap, Medal, Star, Search, X, SlidersHorizontal,
+  Truck, ShieldCheck, Clock, LayoutGrid, Shirt, CircleDot,
+  Shield, Gauge, Tag, Baby, Dumbbell, Layers, Globe, Trophy, Activity,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CATEGORY_MAP: Record<string, { label: string; emoji: string; section: string }> = {
-  'CAMISAS':    { label: 'Camisas',       emoji: '👕', section: 'camisas' },
-  'NBA':        { label: 'NBA',           emoji: '🏀', section: 'nba' },
-  'NFL':        { label: 'NFL',           emoji: '🏈', section: 'outros' },
-  'FÓRMULA 1': { label: 'Fórmula 1',     emoji: '🏎️', section: 'outros' },
-  'SHORTS':     { label: 'Shorts',        emoji: '🩳', section: 'outros' },
-  'ACESSÓRIOS': { label: 'Acessórios',    emoji: '🧦', section: 'outros' },
-  'INFANTIL':   { label: 'Infantil',      emoji: '👦', section: 'infantil' },
-  'TREINO':     { label: 'Treino',        emoji: '🥅', section: 'outros' },
-  'ACADEMIA':   { label: 'Academia',      emoji: '🏋️', section: 'outros' },
-  'COMPRESSÃO': { label: 'Compressão',    emoji: '🔥', section: 'outros' },
-  'SELEÇÕES':   { label: 'Seleções',      emoji: '🇧🇷', section: 'camisas' },
-  'CAMPEONATOS':{ label: 'Campeonatos',   emoji: '⚽', section: 'camisas' },
+interface CategoryMeta {
+  label: string;
+  Icon: LucideIcon;
+}
+
+const CATEGORY_MAP: Record<string, CategoryMeta> = {
+  'CAMISAS':     { label: 'Camisas',     Icon: Shirt },
+  'NBA':         { label: 'NBA',         Icon: CircleDot },
+  'NFL':         { label: 'NFL',         Icon: Shield },
+  'FÓRMULA 1':  { label: 'Fórmula 1',   Icon: Gauge },
+  'SHORTS':      { label: 'Shorts',      Icon: Activity },
+  'ACESSÓRIOS':  { label: 'Acessórios',  Icon: Tag },
+  'INFANTIL':    { label: 'Infantil',    Icon: Baby },
+  'TREINO':      { label: 'Treino',      Icon: Dumbbell },
+  'ACADEMIA':    { label: 'Academia',    Icon: Dumbbell },
+  'COMPRESSÃO':  { label: 'Compressão',  Icon: Layers },
+  'SELEÇÕES':    { label: 'Seleções',    Icon: Globe },
+  'CAMPEONATOS': { label: 'Campeonatos', Icon: Trophy },
 };
 
 export default function Home() {
@@ -93,9 +103,7 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => {
-                  document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })}
                 className="px-8 py-4 rounded-2xl font-bold text-black bg-primary hover:bg-primary/90 transition-all shadow-[0_0_40px_rgba(34,197,94,0.25)] hover:shadow-[0_0_60px_rgba(34,197,94,0.4)] text-center"
               >
                 Ver Catálogo
@@ -115,7 +123,7 @@ export default function Home() {
         {/* Quick stats */}
         <div className="absolute bottom-8 right-8 hidden xl:flex flex-col gap-3">
           {[
-            { icon: <Truck className="w-4 h-4" />, text: 'Frete Grátis · Brasil Todo' },
+            { icon: <Truck className="w-4 h-4" />, text: 'Frete Grátis em 5+ peças' },
             { icon: <ShieldCheck className="w-4 h-4" />, text: 'Taxação por nossa conta' },
             { icon: <Clock className="w-4 h-4" />, text: 'Entrega 20-30 dias' },
           ].map((item, i) => (
@@ -137,7 +145,7 @@ export default function Home() {
             <span className="w-px h-4 bg-white/10 hidden sm:block" />
             <span className="flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /> Personalização +R$20</span>
             <span className="w-px h-4 bg-white/10 hidden sm:block" />
-            <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-primary" /> Frete grátis</span>
+            <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-primary" /> Frete grátis em 5+ peças</span>
           </div>
         </div>
       </div>
@@ -145,7 +153,7 @@ export default function Home() {
       {/* Catalog section */}
       <section id="catalogo" className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* Section header */}
           <div className="mb-8">
             <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">Catálogo Completo</h2>
@@ -179,18 +187,23 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none -mx-1 px-1" id="camisas">
             {categories.map(cat => {
               const meta = CATEGORY_MAP[cat];
+              const Icon = meta?.Icon;
+              const isActive = activeCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => handleCategoryClick(cat)}
                   className={cn(
                     "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all shrink-0 border",
-                    activeCategory === cat
+                    isActive
                       ? "bg-primary text-black border-primary shadow-[0_0_20px_rgba(34,197,94,0.3)]"
                       : "bg-card border-white/10 text-white/70 hover:text-white hover:border-white/25"
                   )}
                 >
-                  {meta && <span className="text-base leading-none">{meta.emoji}</span>}
+                  {cat === 'TODOS'
+                    ? <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+                    : Icon && <Icon className="w-3.5 h-3.5 shrink-0" />
+                  }
                   {cat === 'TODOS' ? 'Todos' : (meta?.label || cat)}
                 </button>
               );
@@ -260,41 +273,20 @@ export default function Home() {
             </div>
           )}
 
-          {/* NBA / Outros sections anchors (invisible, for nav scroll) */}
+          {/* Anchor divs for nav scroll */}
           <div id="outros" className="h-0" />
           <div id="infantil" className="h-0" />
 
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-12 flex items-center justify-center">
             <a
               href="https://drive.google.com/drive/folders/11DK2iU4tMSXfpkvxP62hbEiLGO3sxtYA?usp=drive_link"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-card border border-white/10 hover:border-primary/40 transition-all hover:-translate-y-0.5 text-sm group"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-card border border-white/10 hover:border-primary/40 transition-all hover:-translate-y-0.5 text-sm"
             >
               Ver todas as categorias no Drive
               <ExternalLink className="w-4 h-4 text-primary" />
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Info section */}
-      <section className="py-16 bg-card/30 border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-xl font-black text-white text-center mb-8">Por que comprar na WM Sports?</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: <Truck className="w-8 h-8 text-primary" />, title: 'Frete Grátis', desc: 'Para todo o Brasil em qualquer pedido.' },
-              { icon: <Clock className="w-8 h-8 text-primary" />, title: 'Prazo Garantido', desc: 'Fabricação 2-5 dias. Entrega 20-30 dias.' },
-              { icon: <ShieldCheck className="w-8 h-8 text-primary" />, title: 'Sem taxas', desc: 'Taxação alfândega? Por nossa conta.' },
-              { icon: <Star className="w-8 h-8 text-primary" />, title: 'Qualidade 1.1', desc: 'Tailandesas direto da fábrica.' },
-            ].map((item, i) => (
-              <div key={i} className="flex flex-col items-center text-center p-6 bg-background/50 rounded-2xl border border-white/5 hover:border-primary/20 transition-colors">
-                {item.icon}
-                <h4 className="font-bold text-white mt-3 mb-1">{item.title}</h4>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
