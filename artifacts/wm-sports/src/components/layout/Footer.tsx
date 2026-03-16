@@ -8,7 +8,7 @@ export function Footer() {
           <div className="flex flex-col items-center text-center p-6 bg-background/50 rounded-2xl border border-white/5">
             <Truck className="w-10 h-10 text-primary mb-4" />
             <h4 className="font-bold text-white mb-2">Frete Grátis</h4>
-            <p className="text-sm text-muted-foreground">Para todo o Brasil em qualquer compra do catálogo.</p>
+            <p className="text-sm text-muted-foreground">Para todo o Brasil em pedidos com 5 ou mais peças.</p>
           </div>
           
           <div className="flex flex-col items-center text-center p-6 bg-background/50 rounded-2xl border border-white/5">

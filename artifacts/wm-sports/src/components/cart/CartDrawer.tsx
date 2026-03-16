@@ -30,7 +30,7 @@ export function CartDrawer() {
     });
 
     message += `*Total do Pedido: ${formatCurrency(total)}*\n`;
-    message += `_Frete Grátis para todo o Brasil!_`;
+    message += `_Frete Grátis em pedidos com 5+ peças!_`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
