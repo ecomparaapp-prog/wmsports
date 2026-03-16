@@ -1,5 +1,5 @@
 // Replace with actual WhatsApp number of the store owner
-export const WHATSAPP_NUMBER = "5511999999999"; 
+export const WHATSAPP_NUMBER = "5561995818169";
 
 export const SIZES = ["PP", "P", "M", "G", "GG", "XG", "XGG", "2XL", "3XL", "4XL"] as const;
 
