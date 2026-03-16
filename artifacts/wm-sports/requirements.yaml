@@ -1,0 +1,16 @@
+packages:
+  "zustand": "State management for shopping cart"
+  "framer-motion": "Animations for modals, cart drawer, and page transitions"
+  "clsx": "Utility for constructing className strings"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+images:
+  - path: "artifacts/wm-sports/public/images/hero-stadium.png"
+    description: "Abstract dark modern soccer stadium background with subtle glowing green neon lights, geometric patterns, deep shadows, premium sports brand aesthetic, moody lighting"
+    aspect_ratio: "21:9"
+  - path: "artifacts/wm-sports/public/images/pattern-bg.png"
+    description: "Subtle dark carbon fiber texture or dot matrix pattern, very dark gray, almost black, suitable for a premium sports apparel background"
+    aspect_ratio: "16:9"
+notes:
+  - Using Zustand for local cart state (persisted to localStorage)
+  - Integrating with provided @workspace/api-client-react hooks
+  - Implemented dynamic pricing logic (quantity discounts + size surcharges + personalization)
