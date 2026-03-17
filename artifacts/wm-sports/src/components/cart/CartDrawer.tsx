@@ -11,7 +11,7 @@ export function CartDrawer() {
   const { user } = useAuth();
   const total = calculateCartTotal(items);
 
-  const missingProfile = user && (!user.fullName || !user.address);
+  const missingProfile = user && (!user.address);
 
   const handleCheckout = () => {
     if (items.length === 0) return;
@@ -19,7 +19,7 @@ export function CartDrawer() {
     let message = `*NOVO PEDIDO - WM SPORTS*\n\n`;
 
     if (user) {
-      message += `*Cliente:* ${user.fullName || user.name}\n`;
+      message += `*Cliente:* ${user.name}\n`;
       if (user.email) message += `*Email:* ${user.email}\n`;
       if (user.phone) message += `*Telefone:* ${user.phone}\n`;
       if (user.address) message += `*Endereço:* ${user.address}\n`;
@@ -44,8 +44,7 @@ export function CartDrawer() {
     message += `*Total do Pedido: ${formatCurrency(total)}*\n`;
     message += `_Frete Grátis em pedidos com 5+ peças!_`;
 
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
@@ -78,33 +77,33 @@ export function CartDrawer() {
 
             {/* Profile banner */}
             {!user ? (
-              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl text-sm">
+              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
                 <User className="w-4 h-4 text-white/40 shrink-0" />
                 <p className="text-white/60 text-xs flex-1">
-                  <Link href="/profile" onClick={closeDrawer} className="text-primary font-semibold hover:underline">Faça login</Link>
-                  {' '}para incluir seus dados de entrega automaticamente.
+                  <Link href="/profile" onClick={closeDrawer} className="text-primary font-semibold hover:underline">
+                    Crie seu perfil
+                  </Link>
+                  {' '}para incluir nome e endereço automaticamente no pedido.
                 </p>
               </div>
             ) : missingProfile ? (
-              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-sm">
+              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
                 <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
                 <p className="text-white/70 text-xs flex-1">
-                  <Link href="/profile" onClick={closeDrawer} className="text-yellow-400 font-semibold hover:underline">Complete seu perfil</Link>
-                  {' '}para incluir nome e endereço no pedido.
+                  <Link href="/profile" onClick={closeDrawer} className="text-yellow-400 font-semibold hover:underline">
+                    Adicione seu endereço
+                  </Link>
+                  {' '}para facilitar a entrega.
                 </p>
               </div>
             ) : (
               <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-primary/5 border border-primary/15 rounded-xl">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-primary" />
-                  </div>
-                )}
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-white truncate">{user.fullName || user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.address || user.email}</p>
+                  <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.address}</p>
                 </div>
                 <Link href="/profile" onClick={closeDrawer} className="text-xs text-primary hover:underline shrink-0">Editar</Link>
               </div>
@@ -179,11 +178,10 @@ export function CartDrawer() {
 
             {items.length > 0 && (
               <div className="p-6 border-t border-white/10 bg-background/50">
-                <div className="flex justify-between items-center mb-4 text-lg">
+                <div className="flex justify-between items-center mb-4">
                   <span className="text-muted-foreground">Total:</span>
                   <span className="font-bold text-2xl text-white">{formatCurrency(total)}</span>
                 </div>
-
                 <button
                   onClick={handleCheckout}
                   className="w-full py-4 rounded-xl font-bold text-black bg-primary hover:bg-primary/90 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)]"

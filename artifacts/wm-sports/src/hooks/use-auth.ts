@@ -1,45 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export interface AuthUser {
-  id: number;
-  googleId: string;
-  email: string;
   name: string;
-  avatar: string | null;
-  fullName: string | null;
-  address: string | null;
-  phone: string | null;
+  email: string;
+  address: string;
+  phone: string;
 }
 
-interface AuthState {
-  user: AuthUser | null;
-  loading: boolean;
+const STORAGE_KEY = 'wm-sports-profile';
+
+function loadUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AuthUser;
+    if (!parsed.name) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
-let globalState: AuthState = { user: null, loading: true };
+function saveUser(user: AuthUser) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+}
+
+function clearUser() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+let globalUser: AuthUser | null = loadUser();
 const listeners = new Set<() => void>();
 
 function notify() {
   listeners.forEach(fn => fn());
 }
-
-async function fetchMe() {
-  try {
-    const res = await fetch('/api/auth/me', { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-      globalState = { user: data.user ?? null, loading: false };
-    } else {
-      globalState = { user: null, loading: false };
-    }
-  } catch {
-    globalState = { user: null, loading: false };
-  }
-  notify();
-}
-
-// Kick off on module load
-fetchMe();
 
 export function useAuth() {
   const [, setTick] = useState(0);
@@ -50,33 +45,31 @@ export function useAuth() {
     return () => { listeners.delete(rerender); };
   }, []);
 
-  const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-    globalState = { user: null, loading: false };
+  const login = useCallback((user: AuthUser) => {
+    saveUser(user);
+    globalUser = user;
     notify();
   }, []);
 
-  const updateProfile = useCallback(async (data: { fullName?: string; address?: string; phone?: string }) => {
-    const res = await fetch('/api/auth/profile', {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      globalState = { user: json.user, loading: false };
-      notify();
-      return json.user;
-    }
-    throw new Error('Failed to update profile');
+  const logout = useCallback(() => {
+    clearUser();
+    globalUser = null;
+    notify();
+  }, []);
+
+  const updateProfile = useCallback((data: Partial<AuthUser>) => {
+    const updated = { ...globalUser, ...data } as AuthUser;
+    saveUser(updated);
+    globalUser = updated;
+    notify();
+    return updated;
   }, []);
 
   return {
-    user: globalState.user,
-    loading: globalState.loading,
+    user: globalUser,
+    loading: false,
+    login,
     logout,
     updateProfile,
-    refetch: fetchMe,
   };
 }
