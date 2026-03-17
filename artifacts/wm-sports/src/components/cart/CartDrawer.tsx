@@ -120,7 +120,7 @@ export function CartDrawer() {
                 </div>
               ) : (
                 items.map((item) => (
-                  <div key={item.cartItemId} className="flex gap-4 bg-background p-4 rounded-xl border border-white/5 relative group">
+                  <div key={item.cartItemId} className="flex gap-3 bg-background p-4 rounded-xl border border-white/5">
                     <div className="w-20 h-24 bg-secondary rounded-lg overflow-hidden shrink-0">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -129,21 +129,29 @@ export function CartDrawer() {
                       )}
                     </div>
 
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
+                      <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-sm leading-tight text-white/90 line-clamp-2">{item.name}</h4>
-                        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                          <p>Tamanho: <span className="text-white">{item.size}</span></p>
-                          {item.personalization && (
-                            <p className="text-primary font-medium">
-                              {item.personalization.name} #{item.personalization.number}
-                            </p>
-                          )}
-                        </div>
+                        <button
+                          onClick={() => removeItem(item.cartItemId)}
+                          className="shrink-0 p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                          aria-label="Remover item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                        <p>Tamanho: <span className="text-white">{item.size}</span></p>
+                        {item.personalization && (
+                          <p className="text-primary font-medium">
+                            {item.personalization.name} #{item.personalization.number}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-3 bg-secondary rounded-lg px-2 py-1">
+                        <div className="flex items-center gap-2 bg-secondary rounded-lg px-2 py-1">
                           <button
                             onClick={() => updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}
                             className="p-1 hover:text-primary transition-colors disabled:opacity-50"
@@ -164,13 +172,6 @@ export function CartDrawer() {
                         </p>
                       </div>
                     </div>
-
-                    <button
-                      onClick={() => removeItem(item.cartItemId)}
-                      className="absolute -top-2 -right-2 p-2 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-destructive/80"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
                   </div>
                 ))
               )}
