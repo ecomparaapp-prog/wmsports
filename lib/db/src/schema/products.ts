@@ -19,6 +19,12 @@ export const productsTable = pgTable("products", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true, createdAt: true });
+const numericField = z.union([z.string(), z.number()]).transform((v) => String(v));
+
+export const insertProductSchema = createInsertSchema(productsTable, {
+  basePrice: numericField,
+  price3: z.union([z.string(), z.number(), z.null()]).transform((v) => v == null ? null : String(v)).optional(),
+  price5: z.union([z.string(), z.number(), z.null()]).transform((v) => v == null ? null : String(v)).optional(),
+}).omit({ id: true, createdAt: true });
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof productsTable.$inferSelect;
