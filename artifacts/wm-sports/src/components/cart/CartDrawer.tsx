@@ -1,4 +1,4 @@
-import { useCart, calculateItemUnitPrice, calculateCartTotal } from '@/store/use-cart';
+import { useCart, calculateItemUnitPrice, calculateCartTotal, getCartTotalItems } from '@/store/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/utils';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
@@ -10,6 +10,7 @@ export function CartDrawer() {
   const { items, isDrawerOpen, closeDrawer, removeItem, updateQuantity } = useCart();
   const { user } = useAuth();
   const total = calculateCartTotal(items);
+  const totalItems = getCartTotalItems(items);
 
   const missingProfile = user && (!user.address);
 
@@ -27,7 +28,7 @@ export function CartDrawer() {
     }
 
     items.forEach((item, index) => {
-      const unitPrice = calculateItemUnitPrice(item);
+      const unitPrice = calculateItemUnitPrice(item, totalItems);
       message += `*Item ${index + 1}:* ${item.name}\n`;
       message += `Tamanho: ${item.size}\n`;
       message += `Qtd: ${item.quantity}x (${formatCurrency(unitPrice)} un.)\n`;
@@ -36,6 +37,10 @@ export function CartDrawer() {
         message += `Personalização: ${item.personalization.name} #${item.personalization.number}\n`;
       } else {
         message += `Sem personalização\n`;
+      }
+
+      if (item.sponsors) {
+        message += `Todos os patrocínios: Sim (+R$ 35,00)\n`;
       }
 
       message += `Subtotal: ${formatCurrency(unitPrice * item.quantity)}\n\n`;
@@ -69,15 +74,40 @@ export function CartDrawer() {
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
                 Seu Carrinho
+                {totalItems > 0 && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({totalItems} peça{totalItems !== 1 ? 's' : ''})
+                  </span>
+                )}
               </h2>
               <button onClick={closeDrawer} className="p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {/* Discount banner */}
+            {totalItems > 0 && totalItems < 3 && (
+              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary font-medium">
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                Adicione {3 - totalItems} peça{3 - totalItems > 1 ? 's' : ''} para ganhar desconto!
+              </div>
+            )}
+            {totalItems >= 3 && totalItems < 5 && (
+              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/15 border border-primary/30 rounded-xl text-xs text-primary font-semibold">
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                Desconto de 3+ peças ativo! Adicione {5 - totalItems} mais para desconto maior.
+              </div>
+            )}
+            {totalItems >= 5 && (
+              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/20 border border-primary/40 rounded-xl text-xs text-black font-bold bg-primary">
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                Desconto máximo de 5+ peças ativo! 🎉
+              </div>
+            )}
+
             {/* Profile banner */}
             {!user ? (
-              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
+              <div className="mx-4 mt-3 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
                 <User className="w-4 h-4 text-white/40 shrink-0" />
                 <p className="text-white/60 text-xs flex-1">
                   <Link href="/profile" onClick={closeDrawer} className="text-primary font-semibold hover:underline">
@@ -87,7 +117,7 @@ export function CartDrawer() {
                 </p>
               </div>
             ) : missingProfile ? (
-              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+              <div className="mx-4 mt-3 flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
                 <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
                 <p className="text-white/70 text-xs flex-1">
                   <Link href="/profile" onClick={closeDrawer} className="text-yellow-400 font-semibold hover:underline">
@@ -97,7 +127,7 @@ export function CartDrawer() {
                 </p>
               </div>
             ) : (
-              <div className="mx-4 mt-4 flex items-center gap-3 p-3 bg-primary/5 border border-primary/15 rounded-xl">
+              <div className="mx-4 mt-3 flex items-center gap-3 p-3 bg-primary/5 border border-primary/15 rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <User className="w-4 h-4 text-primary" />
                 </div>
@@ -119,61 +149,67 @@ export function CartDrawer() {
                   </button>
                 </div>
               ) : (
-                items.map((item) => (
-                  <div key={item.cartItemId} className="flex gap-3 bg-background p-4 rounded-xl border border-white/5">
-                    <div className="w-20 h-24 bg-secondary rounded-lg overflow-hidden shrink-0">
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">Sem img</div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-semibold text-sm leading-tight text-white/90 line-clamp-2">{item.name}</h4>
-                        <button
-                          onClick={() => removeItem(item.cartItemId)}
-                          className="shrink-0 p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                          aria-label="Remover item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                        <p>Tamanho: <span className="text-white">{item.size}</span></p>
-                        {item.personalization && (
-                          <p className="text-primary font-medium">
-                            {item.personalization.name} #{item.personalization.number}
-                          </p>
+                items.map((item) => {
+                  const unitPrice = calculateItemUnitPrice(item, totalItems);
+                  return (
+                    <div key={item.cartItemId} className="flex gap-3 bg-background p-4 rounded-xl border border-white/5">
+                      <div className="w-20 h-24 bg-secondary rounded-lg overflow-hidden shrink-0">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">Sem img</div>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2 bg-secondary rounded-lg px-2 py-1">
+                      <div className="flex-1 flex flex-col justify-between min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-semibold text-sm leading-tight text-white/90 line-clamp-2">{item.name}</h4>
                           <button
-                            onClick={() => updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}
-                            className="p-1 hover:text-primary transition-colors disabled:opacity-50"
-                            disabled={item.quantity <= 1}
+                            onClick={() => removeItem(item.cartItemId)}
+                            className="shrink-0 p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            aria-label="Remover item"
                           >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                            className="p-1 hover:text-primary transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        <p className="font-bold text-primary">
-                          {formatCurrency(calculateItemUnitPrice(item) * item.quantity)}
-                        </p>
+
+                        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                          <p>Tamanho: <span className="text-white">{item.size}</span></p>
+                          {item.personalization && (
+                            <p className="text-primary font-medium">
+                              {item.personalization.name} #{item.personalization.number}
+                            </p>
+                          )}
+                          {item.sponsors && (
+                            <p className="text-primary font-medium">Com todos os patrocínios</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2 bg-secondary rounded-lg px-2 py-1">
+                            <button
+                              onClick={() => updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}
+                              className="p-1 hover:text-primary transition-colors disabled:opacity-50"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                              className="p-1 hover:text-primary transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <p className="font-bold text-primary">
+                            {formatCurrency(unitPrice * item.quantity)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

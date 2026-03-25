@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useListProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@workspace/api-client-react';
 import { resolveImageUrl, driveUrlToImageUrl } from '@/lib/drive';
 import { formatCurrency } from '@/lib/utils';
-import { Trash2, Pencil, Plus, X, ExternalLink, Image, CheckCircle2, Lock } from 'lucide-react';
+import { Trash2, Pencil, Plus, X, ExternalLink, Image, CheckCircle2, Lock, Search } from 'lucide-react';
 
 const ADMIN_PASSWORD = "wmsports2024";
 
 const CATEGORIES = [
-  "CAMISAS", "SHORTS", "ACESSÓRIOS", "INFANTIL", "TREINO",
+  "BRASILEIRAO", "SHORTS", "ACESSÓRIOS", "INFANTIL", "TREINO",
   "NBA", "ACADEMIA", "NFL", "FÓRMULA 1", "COMPRESSÃO",
   "SELEÇÕES", "CAMPEONATOS"
 ];
@@ -31,7 +31,7 @@ interface ProductForm {
 
 const emptyForm: ProductForm = {
   name: "",
-  category: "CAMISAS",
+  category: "BRASILEIRAO",
   subcategory: "",
   description: "",
   imageUrl: "",
@@ -54,11 +54,25 @@ export default function Admin() {
   const [showForm, setShowForm] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [driveError, setDriveError] = useState(false);
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategoryFilter, setAdminCategoryFilter] = useState('TODOS');
 
   const { data: products, isLoading, refetch } = useListProducts();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+
+  const filteredAdminProducts = useMemo(() => {
+    if (!products) return [];
+    return products.filter(p => {
+      const matchSearch = !adminSearch ||
+        p.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
+        p.category.toLowerCase().includes(adminSearch.toLowerCase()) ||
+        (p.subcategory || '').toLowerCase().includes(adminSearch.toLowerCase());
+      const matchCat = adminCategoryFilter === 'TODOS' || p.category === adminCategoryFilter;
+      return matchSearch && matchCat;
+    });
+  }, [products, adminSearch, adminCategoryFilter]);
 
   function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -370,10 +384,12 @@ export default function Admin() {
           </div>
         )}
 
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Catálogo de Produtos</h1>
-            <p className="text-muted-foreground text-sm mt-1">{products?.length || 0} produtos cadastrados</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              {filteredAdminProducts.length} de {products?.length || 0} produtos
+            </p>
           </div>
           <a
             href="https://drive.google.com/drive/folders/11DK2iU4tMSXfpkvxP62hbEiLGO3sxtYA?usp=drive_link"
@@ -384,15 +400,51 @@ export default function Admin() {
           </a>
         </div>
 
+        {/* Search + filter bar for admin */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="search"
+              value={adminSearch}
+              onChange={e => setAdminSearch(e.target.value)}
+              placeholder="Buscar produto por nome, time ou categoria..."
+              className="w-full bg-card border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+          <select
+            value={adminCategoryFilter}
+            onChange={e => setAdminCategoryFilter(e.target.value)}
+            className="bg-card border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary min-w-[160px]"
+          >
+            <option value="TODOS">Todas as categorias</option>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          {(adminSearch || adminCategoryFilter !== 'TODOS') && (
+            <button
+              onClick={() => { setAdminSearch(''); setAdminCategoryFilter('TODOS'); }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white text-sm transition-colors"
+            >
+              <X className="w-4 h-4" /> Limpar
+            </button>
+          )}
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({length: 8}).map((_, i) => (
               <div key={i} className="animate-pulse bg-card rounded-xl h-64 border border-white/5" />
             ))}
           </div>
+        ) : filteredAdminProducts.length === 0 ? (
+          <div className="text-center py-20">
+            <Search className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-white font-semibold mb-1">Nenhum produto encontrado</p>
+            <p className="text-muted-foreground text-sm">Tente outros termos de busca ou filtros</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {products?.map(product => {
+            {filteredAdminProducts.map(product => {
               const imgSrc = resolveImageUrl(product.imageUrl);
               return (
                 <div key={product.id} className="bg-card border border-white/5 rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
@@ -413,6 +465,9 @@ export default function Admin() {
                   </div>
                   <div className="p-3">
                     <p className="text-xs text-primary font-semibold mb-1">{product.category}</p>
+                    {product.subcategory && (
+                      <p className="text-xs text-muted-foreground mb-0.5">{product.subcategory}</p>
+                    )}
                     <p className="text-sm font-semibold text-white line-clamp-2 mb-2">{product.name}</p>
                     <p className="text-xs font-bold text-white mb-3">{formatCurrency(product.basePrice)}</p>
                     <div className="flex gap-2">

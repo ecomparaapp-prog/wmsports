@@ -1,15 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useListProducts } from '@workspace/api-client-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { FALLBACK_PRODUCTS } from '@/lib/constants';
 import {
   ExternalLink, Zap, Medal, Star, Search, X, SlidersHorizontal,
-  Truck, ShieldCheck, Clock, LayoutGrid, Shirt, CircleDot,
+  Truck, ShieldCheck, Clock, LayoutGrid, CircleDot,
   Shield, Gauge, Tag, Baby, Dumbbell, Layers, Globe, Trophy, Activity,
+  Flame, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCatalogFilter } from '@/store/use-catalog-filter';
 
 interface CategoryMeta {
   label: string;
@@ -17,7 +19,7 @@ interface CategoryMeta {
 }
 
 const CATEGORY_MAP: Record<string, CategoryMeta> = {
-  'CAMISAS':     { label: 'Camisas',     Icon: Shirt },
+  'BRASILEIRAO': { label: 'Brasileirão', Icon: Trophy },
   'NBA':         { label: 'NBA',         Icon: CircleDot },
   'NFL':         { label: 'NFL',         Icon: Shield },
   'FÓRMULA 1':  { label: 'Fórmula 1',   Icon: Gauge },
@@ -31,16 +33,42 @@ const CATEGORY_MAP: Record<string, CategoryMeta> = {
   'CAMPEONATOS': { label: 'Campeonatos', Icon: Trophy },
 };
 
+type SortMode = 'default' | 'mais_buscados' | 'novidades';
+
 export default function Home() {
   const { data: apiProducts, isLoading, error } = useListProducts();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('TODOS');
   const [activeSubcategory, setActiveSubcategory] = useState<string>('TODOS');
+  const [sortMode, setSortMode] = useState<SortMode>('default');
 
-  const allProducts = useMemo(() =>
-    apiProducts && apiProducts.length > 0 ? apiProducts : FALLBACK_PRODUCTS,
-    [apiProducts]
-  );
+  const { navFilter, clearNavFilter } = useCatalogFilter();
+
+  // React to nav filter changes from Navbar
+  useEffect(() => {
+    if (!navFilter) return;
+
+    if (navFilter === 'MAIS_BUSCADOS') {
+      setActiveCategory('TODOS');
+      setActiveSubcategory('TODOS');
+      setSortMode('mais_buscados');
+    } else if (navFilter === 'NOVIDADES') {
+      setActiveCategory('TODOS');
+      setActiveSubcategory('TODOS');
+      setSortMode('novidades');
+    } else {
+      setActiveCategory(navFilter);
+      setActiveSubcategory('TODOS');
+      setSortMode('default');
+    }
+
+    clearNavFilter();
+  }, [navFilter, clearNavFilter]);
+
+  const allProducts = useMemo(() => {
+    if (Array.isArray(apiProducts) && apiProducts.length > 0) return apiProducts;
+    return FALLBACK_PRODUCTS;
+  }, [apiProducts]);
 
   const categories = useMemo(() => {
     const cats = new Set(allProducts.map(p => p.category));
@@ -58,7 +86,7 @@ export default function Home() {
   }, [allProducts, activeCategory]);
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(p => {
+    let products = allProducts.filter(p => {
       const matchCat = activeCategory === 'TODOS' || p.category === activeCategory;
       const matchSub = activeSubcategory === 'TODOS' || p.subcategory === activeSubcategory;
       const matchSearch = !search ||
@@ -67,14 +95,31 @@ export default function Home() {
         (p.subcategory || '').toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSub && matchSearch;
     });
-  }, [allProducts, activeCategory, activeSubcategory, search]);
+
+    if (sortMode === 'mais_buscados') {
+      products = [...products].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
+    } else if (sortMode === 'novidades') {
+      products = [...products].sort((a, b) =>
+        new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      );
+    }
+
+    return products;
+  }, [allProducts, activeCategory, activeSubcategory, search, sortMode]);
 
   const handleCategoryClick = (cat: string) => {
     setActiveCategory(cat);
     setActiveSubcategory('TODOS');
+    setSortMode('default');
     const el = document.getElementById('catalogo');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  const activeSortLabel = sortMode === 'mais_buscados'
+    ? 'Mais Buscados'
+    : sortMode === 'novidades'
+    ? 'Novidades'
+    : null;
 
   return (
     <MainLayout>
@@ -155,9 +200,27 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Section header */}
-          <div className="mb-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">Catálogo Completo</h2>
-            <p className="text-sm text-muted-foreground">{filteredProducts.length} produtos encontrados</p>
+          <div className="mb-8 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">
+                {activeSortLabel ? (
+                  <span className="flex items-center gap-2">
+                    {sortMode === 'mais_buscados' && <Flame className="w-6 h-6 text-primary" />}
+                    {sortMode === 'novidades' && <Sparkles className="w-6 h-6 text-primary" />}
+                    {activeSortLabel}
+                  </span>
+                ) : 'Catálogo Completo'}
+              </h2>
+              <p className="text-sm text-muted-foreground">{filteredProducts.length} produtos encontrados</p>
+            </div>
+            {activeSortLabel && (
+              <button
+                onClick={() => setSortMode('default')}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Limpar filtro
+              </button>
+            )}
           </div>
 
           {/* Search + filter row */}
@@ -184,11 +247,11 @@ export default function Home() {
           </div>
 
           {/* Category tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none -mx-1 px-1" id="camisas">
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none -mx-1 px-1">
             {categories.map(cat => {
               const meta = CATEGORY_MAP[cat];
               const Icon = meta?.Icon;
-              const isActive = activeCategory === cat;
+              const isActive = activeCategory === cat && sortMode === 'default';
               return (
                 <button
                   key={cat}
@@ -259,23 +322,19 @@ export default function Home() {
               <p className="text-white font-semibold mb-1">Nenhum produto encontrado</p>
               <p className="text-muted-foreground text-sm mb-4">Tente outros filtros ou termos de busca</p>
               <button
-                onClick={() => { setSearch(''); setActiveCategory('TODOS'); setActiveSubcategory('TODOS'); }}
+                onClick={() => { setSearch(''); setActiveCategory('TODOS'); setActiveSubcategory('TODOS'); setSortMode('default'); }}
                 className="text-primary hover:underline text-sm font-medium"
               >
                 Limpar filtros
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="nba">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
-
-          {/* Anchor divs for nav scroll */}
-          <div id="outros" className="h-0" />
-          <div id="infantil" className="h-0" />
 
           <div className="mt-12 flex items-center justify-center">
             <a

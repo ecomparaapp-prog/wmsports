@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { ShoppingBag, Menu, X, ExternalLink, ChevronRight, LogOut, User, UserCircle } from 'lucide-react';
+import { ShoppingBag, Menu, X, ExternalLink, ChevronRight, LogOut, User, UserCircle, Flame, Sparkles, Trophy } from 'lucide-react';
 import { useCart } from '@/store/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useCatalogFilter } from '@/store/use-catalog-filter';
 
 const NAV_LINKS = [
-  { label: 'Camisas de Futebol', href: '#camisas' },
-  { label: 'NBA', href: '#nba' },
-  { label: 'Shorts & Acessórios', href: '#outros' },
-  { label: 'Infantil', href: '#infantil' },
+  { label: 'Mais Buscados', href: '#catalogo', filter: 'MAIS_BUSCADOS', Icon: Flame },
+  { label: 'Novidades', href: '#catalogo', filter: 'NOVIDADES', Icon: Sparkles },
+  { label: 'Brasileirão', href: '#catalogo', filter: 'BRASILEIRAO', Icon: Trophy },
 ];
 
 export function Navbar() {
@@ -17,12 +17,16 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { setNavFilter } = useCatalogFilter();
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (filter: string) => {
     setMenuOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setNavFilter(filter);
+    setTimeout(() => {
+      const el = document.getElementById('catalogo');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
   const handleLogout = () => {
@@ -56,10 +60,11 @@ export function Navbar() {
             <nav className="hidden lg:flex items-center gap-6">
               {NAV_LINKS.map(link => (
                 <button
-                  key={link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-sm font-medium text-white/70 hover:text-primary transition-colors"
+                  key={link.filter}
+                  onClick={() => handleNavClick(link.filter)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-primary transition-colors"
                 >
+                  <link.Icon className="w-3.5 h-3.5" />
                   {link.label}
                 </button>
               ))}
@@ -203,11 +208,14 @@ export function Navbar() {
               <nav className="flex-1 py-4 overflow-y-auto">
                 {NAV_LINKS.map(link => (
                   <button
-                    key={link.href}
-                    onClick={() => handleNavClick(link.href)}
+                    key={link.filter}
+                    onClick={() => handleNavClick(link.filter)}
                     className="w-full flex items-center justify-between px-5 py-3.5 text-white/80 hover:text-primary hover:bg-white/5 transition-colors text-sm font-medium"
                   >
-                    {link.label}
+                    <span className="flex items-center gap-2">
+                      <link.Icon className="w-4 h-4" />
+                      {link.label}
+                    </span>
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </button>
                 ))}
