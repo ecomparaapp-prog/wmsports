@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getSizeSurcharge, PERSONALIZATION_PRICE } from '@/lib/constants';
+import { getSizeSurcharge, PERSONALIZATION_PRICE, SPONSORS_PRICE } from '@/lib/constants';
 
 export interface CartItem {
-  cartItemId: string; // unique ID for the cart instance
+  cartItemId: string;
   productId: number;
   name: string;
   category: string;
@@ -17,6 +17,7 @@ export interface CartItem {
     name: string;
     number: string;
   } | null;
+  sponsors?: boolean;
 }
 
 interface CartStore {
@@ -28,7 +29,7 @@ interface CartStore {
   clearCart: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;
-  getTotalItems: () => void;
+  getTotalItems: () => number;
 }
 
 export const useCart = create<CartStore>()(
@@ -38,12 +39,12 @@ export const useCart = create<CartStore>()(
       isDrawerOpen: false,
       addItem: (item) => {
         set((state) => {
-          // Check if identical item exists (same product, size, personalization)
           const existingItemIndex = state.items.findIndex(
             (i) =>
               i.productId === item.productId &&
               i.size === item.size &&
-              JSON.stringify(i.personalization) === JSON.stringify(item.personalization)
+              JSON.stringify(i.personalization) === JSON.stringify(item.personalization) &&
+              !!i.sponsors === !!item.sponsors
           );
 
           if (existingItemIndex > -1) {
@@ -76,29 +77,37 @@ export const useCart = create<CartStore>()(
     }),
     {
       name: 'wm-sports-cart',
-      partialize: (state) => ({ items: state.items }), // Only persist items
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );
 
-export function calculateItemUnitPrice(item: CartItem): number {
+// totalCartItems: total quantity of all items in cart (for cross-product discount)
+export function calculateItemUnitPrice(item: CartItem, totalCartItems?: number): number {
   let base = item.basePrice;
-  
-  // Apply quantity discounts if applicable for THIS specific item stack
-  if (item.quantity >= 5 && item.price5) {
+
+  // Apply discount based on TOTAL cart items, not just this item's qty
+  const count = totalCartItems ?? item.quantity;
+  if (count >= 5 && item.price5) {
     base = item.price5;
-  } else if (item.quantity >= 3 && item.price3) {
+  } else if (count >= 3 && item.price3) {
     base = item.price3;
   }
 
   const sizeSurcharge = getSizeSurcharge(item.size);
   const persSurcharge = item.personalization ? PERSONALIZATION_PRICE : 0;
+  const sponsorsSurcharge = item.sponsors ? SPONSORS_PRICE : 0;
 
-  return base + sizeSurcharge + persSurcharge;
+  return base + sizeSurcharge + persSurcharge + sponsorsSurcharge;
 }
 
 export function calculateCartTotal(items: CartItem[]): number {
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
   return items.reduce((total, item) => {
-    return total + (calculateItemUnitPrice(item) * item.quantity);
+    return total + (calculateItemUnitPrice(item, totalItems) * item.quantity);
   }, 0);
+}
+
+export function getCartTotalItems(items: CartItem[]): number {
+  return items.reduce((acc, item) => acc + item.quantity, 0);
 }

@@ -26,10 +26,18 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+<<<<<<< HEAD
+=======
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start Backend"
+
+>>>>>>> 5864a0dfc0fce7f6c8563565983c4feb92328da9
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
 
+<<<<<<< HEAD
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "PORT=20685 BASE_PATH=/ pnpm --filter @workspace/wm-sports run dev & PORT=8080 pnpm --filter @workspace/api-server run dev & wait"
@@ -38,6 +46,28 @@ waitForPort = 20685
 [workflows.workflow.metadata]
 outputType = "webview"
 
+=======
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=20685 BASE_PATH=/ pnpm --filter @workspace/wm-sports run dev"
+waitForPort = 20685
+
+[[workflows.workflow]]
+name = "Start Backend"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
+waitForPort = 8080
+
+>>>>>>> 5864a0dfc0fce7f6c8563565983c4feb92328da9
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

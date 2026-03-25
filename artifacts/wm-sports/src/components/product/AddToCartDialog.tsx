@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Check, Info, Minus, Plus } from 'lucide-react';
-import { SIZES, getSizeSurcharge, PERSONALIZATION_PRICE } from '@/lib/constants';
-import { useCart } from '@/store/use-cart';
+import { SIZES, getSizeSurcharge, PERSONALIZATION_PRICE, SPONSORS_PRICE } from '@/lib/constants';
+import { useCart, getCartTotalItems } from '@/store/use-cart';
 import { formatCurrency, cn } from '@/lib/utils';
 import { resolveImageUrl } from '@/lib/drive';
 import type { Product } from '@workspace/api-client-react';
@@ -17,11 +17,12 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
   const [size, setSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [wantsPersonalization, setWantsPersonalization] = useState(false);
+  const [wantsSponsors, setWantsSponsors] = useState(false);
   const [persName, setPersName] = useState('');
   const [persNumber, setPersNumber] = useState('');
   const [error, setError] = useState('');
 
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const resolvedImage = resolveImageUrl(product.imageUrl);
 
   useEffect(() => {
@@ -29,20 +30,27 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
       setSize('');
       setQuantity(1);
       setWantsPersonalization(false);
+      setWantsSponsors(false);
       setPersName('');
       setPersNumber('');
       setError('');
     }
   }, [isOpen]);
 
+  const existingCartItems = getCartTotalItems(items);
+  const totalAfterAdd = existingCartItems + quantity;
+
   const getUnitPrice = () => {
     let base = product.basePrice;
-    if (quantity >= 5 && product.price5) base = product.price5;
-    else if (quantity >= 3 && product.price3) base = product.price3;
+    if (totalAfterAdd >= 5 && product.price5) base = product.price5;
+    else if (totalAfterAdd >= 3 && product.price3) base = product.price3;
     const sizeExtra = size ? getSizeSurcharge(size) : 0;
     const persExtra = wantsPersonalization ? PERSONALIZATION_PRICE : 0;
-    return base + sizeExtra + persExtra;
+    const sponsorsExtra = wantsSponsors ? SPONSORS_PRICE : 0;
+    return base + sizeExtra + persExtra + sponsorsExtra;
   };
+
+  const hasDiscount = totalAfterAdd >= 3 && (product.price3 || product.price5);
 
   const handleAddToCart = () => {
     if (!size) { setError('Por favor, selecione um tamanho.'); return; }
@@ -61,6 +69,7 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
       quantity,
       imageUrl: resolvedImage,
       personalization: wantsPersonalization ? { name: persName.toUpperCase(), number: persNumber } : null,
+      sponsors: wantsSponsors,
     });
     onClose();
   };
@@ -156,8 +165,11 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                     </button>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-0.5">
-                    {product.price3 && <p>3+ peças: <span className="text-primary font-semibold">{formatCurrency(product.price3)}</span>/un</p>}
-                    {product.price5 && <p>5+ peças: <span className="text-primary font-semibold">{formatCurrency(product.price5)}</span>/un</p>}
+                    {product.price3 && <p>3+ peças no carrinho: <span className="text-primary font-semibold">{formatCurrency(product.price3)}</span>/un</p>}
+                    {product.price5 && <p>5+ peças no carrinho: <span className="text-primary font-semibold">{formatCurrency(product.price5)}</span>/un</p>}
+                    {existingCartItems > 0 && (
+                      <p className="text-white/40">Já no carrinho: {existingCartItems} peça{existingCartItems > 1 ? 's' : ''}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -181,7 +193,7 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                     </div>
                     <div>
                       <p className="font-semibold text-white text-sm">Personalização</p>
-                      <p className="text-xs text-muted-foreground">Nome + número na camisa (+R$ 20,00)</p>
+                      <p className="text-xs text-muted-foreground">Nome + número na camisa (+R$ {PERSONALIZATION_PRICE},00)</p>
                     </div>
                   </button>
 
@@ -195,7 +207,7 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                       >
                         <div className="px-4 pb-4 grid grid-cols-3 gap-3">
                           <div className="col-span-2">
-                            <label className="text-xs text-muted-foreground block mb-1">Nome (ex: NEYMAR JR)</label>
+                            <label className="text-xs text-white/70 block mb-1">Nome (ex: NEYMAR JR)</label>
                             <input
                               type="text"
                               value={persName}
@@ -206,7 +218,7 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-muted-foreground block mb-1">Número</label>
+                            <label className="text-xs text-white/70 block mb-1">Número</label>
                             <input
                               type="tel"
                               inputMode="numeric"
@@ -228,6 +240,31 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                 </div>
               )}
 
+              {/* Sponsors option */}
+              {product.allowPersonalization && (
+                <div className={cn(
+                  "rounded-xl border transition-colors",
+                  wantsSponsors ? "border-primary/40 bg-primary/5" : "border-white/10 bg-background/40"
+                )}>
+                  <button
+                    type="button"
+                    onClick={() => setWantsSponsors(v => !v)}
+                    className="w-full flex items-center gap-3 p-4 text-left"
+                  >
+                    <div className={cn(
+                      "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
+                      wantsSponsors ? "bg-primary border-primary" : "border-white/30"
+                    )}>
+                      {wantsSponsors && <Check className="w-4 h-4 text-black" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white text-sm">Todos os Patrocínios</p>
+                      <p className="text-xs text-muted-foreground">Camisa com todos os patches e patrocinadores (+R$ {SPONSORS_PRICE},00)</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
                   <Info className="w-4 h-4 shrink-0" />
@@ -242,8 +279,8 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                   <p className="text-xs text-muted-foreground">Total</p>
                   <p className="font-bold text-2xl text-white">{formatCurrency(getUnitPrice() * quantity)}</p>
                 </div>
-                {quantity >= 3 && (product.price3 || product.price5) && (
-                  <span className="text-xs bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full font-semibold">
+                {hasDiscount && (
+                  <span className="text-xs bg-primary text-black border border-primary/30 px-3 py-1 rounded-full font-semibold">
                     Desconto aplicado!
                   </span>
                 )}
