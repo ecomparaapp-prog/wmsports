@@ -98,7 +98,8 @@ export default function Home() {
 
     if (sortMode === 'mais_buscados') {
       products = [...products].sort((a, b) => (b.sortOrder ?? 0) - (a.sortOrder ?? 0));
-    } else if (sortMode === 'novidades') {
+    } else {
+      // Default & novidades: most recent first
       products = [...products].sort((a, b) =>
         new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
       );

@@ -87,19 +87,25 @@ export function CartDrawer() {
 
             {/* Discount banner */}
             {totalItems > 0 && totalItems < 3 && (
-              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary font-medium">
-                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                Adicione {3 - totalItems} peça{3 - totalItems > 1 ? 's' : ''} para ganhar desconto!
+              <div className="mx-4 mt-3 p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary font-medium space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                  Adicione {3 - totalItems} peça{3 - totalItems > 1 ? 's' : ''} para ganhar desconto!
+                </div>
+                <p className="text-primary/70 pl-5">Times diferentes também contam ✓</p>
               </div>
             )}
             {totalItems >= 3 && totalItems < 5 && (
-              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/15 border border-primary/30 rounded-xl text-xs text-primary font-semibold">
-                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                Desconto de 3+ peças ativo! Adicione {5 - totalItems} mais para desconto maior.
+              <div className="mx-4 mt-3 p-3 bg-primary/15 border border-primary/30 rounded-xl text-xs text-primary font-semibold space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                  Desconto de 3+ peças ativo! Adicione {5 - totalItems} mais para desconto maior.
+                </div>
+                <p className="text-primary/70 font-normal pl-5">Times diferentes também contam ✓</p>
               </div>
             )}
             {totalItems >= 5 && (
-              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary/20 border border-primary/40 rounded-xl text-xs text-black font-bold bg-primary">
+              <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-primary border border-primary/40 rounded-xl text-xs font-bold" style={{ color: '#000' }}>
                 <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
                 Desconto máximo de 5+ peças ativo! 🎉
               </div>

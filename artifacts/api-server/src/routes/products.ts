@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { insertProductSchema } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -11,7 +11,7 @@ router.get("/products", async (_req, res) => {
       .select()
       .from(productsTable)
       .where(eq(productsTable.active, true))
-      .orderBy(productsTable.sortOrder);
+      .orderBy(desc(productsTable.createdAt));
     res.json(products.map(p => ({
       ...p,
       basePrice: parseFloat(p.basePrice),

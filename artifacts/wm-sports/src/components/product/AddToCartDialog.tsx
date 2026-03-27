@@ -240,30 +240,28 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                 </div>
               )}
 
-              {/* Sponsors option */}
-              {product.allowPersonalization && (
-                <div className={cn(
-                  "rounded-xl border transition-colors",
-                  wantsSponsors ? "border-primary/40 bg-primary/5" : "border-white/10 bg-background/40"
-                )}>
-                  <button
-                    type="button"
-                    onClick={() => setWantsSponsors(v => !v)}
-                    className="w-full flex items-center gap-3 p-4 text-left"
-                  >
-                    <div className={cn(
-                      "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
-                      wantsSponsors ? "bg-primary border-primary" : "border-white/30"
-                    )}>
-                      {wantsSponsors && <Check className="w-4 h-4 text-black" />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white text-sm">Todos os Patrocínios</p>
-                      <p className="text-xs text-muted-foreground">Camisa com todos os patches e patrocinadores (+R$ {SPONSORS_PRICE},00)</p>
-                    </div>
-                  </button>
-                </div>
-              )}
+              {/* Sponsors option — always visible */}
+              <div className={cn(
+                "rounded-xl border transition-colors",
+                wantsSponsors ? "border-primary/40 bg-primary/5" : "border-white/10 bg-background/40"
+              )}>
+                <button
+                  type="button"
+                  onClick={() => setWantsSponsors(v => !v)}
+                  className="w-full flex items-center gap-3 p-4 text-left"
+                >
+                  <div className={cn(
+                    "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
+                    wantsSponsors ? "bg-primary border-primary" : "border-white/30"
+                  )}>
+                    {wantsSponsors && <Check className="w-4 h-4" style={{ color: '#000' }} />}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm">Todos os Patrocínios</p>
+                    <p className="text-xs text-muted-foreground">Camisa com todos os patches e patrocinadores (+R$ {SPONSORS_PRICE},00)</p>
+                  </div>
+                </button>
+              </div>
 
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
@@ -280,7 +278,7 @@ export function AddToCartDialog({ product, isOpen, onClose }: Props) {
                   <p className="font-bold text-2xl text-white">{formatCurrency(getUnitPrice() * quantity)}</p>
                 </div>
                 {hasDiscount && (
-                  <span className="text-xs bg-primary text-black border border-primary/30 px-3 py-1 rounded-full font-semibold">
+                  <span className="text-xs bg-primary border border-primary/30 px-3 py-1 rounded-full font-semibold" style={{ color: '#000' }}>
                     Desconto aplicado!
                   </span>
                 )}

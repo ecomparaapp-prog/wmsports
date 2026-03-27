@@ -112,7 +112,7 @@ export function ProductCard({ product }: Props) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-              className="relative z-10 flex flex-col items-center gap-4 max-w-2xl w-full"
+              className="relative z-10 flex flex-col items-center gap-4 max-w-4xl w-full"
             >
               <button
                 onClick={() => setIsZoomOpen(false)}
@@ -133,7 +133,8 @@ export function ProductCard({ product }: Props) {
               </div>
               <button
                 onClick={() => { setIsZoomOpen(false); setIsDialogOpen(true); }}
-                className="px-8 py-3 bg-primary text-black font-bold rounded-xl flex items-center gap-2 hover:bg-primary/90 transition-all"
+                className="px-8 py-3 bg-primary font-bold rounded-xl flex items-center gap-2 hover:bg-primary/90 transition-all"
+                style={{ color: '#000' }}
               >
                 <ShoppingCart className="w-4 h-4" />
                 Comprar
